@@ -1,0 +1,43 @@
+name: ci
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: library
+          POSTGRES_PASSWORD: library
+          POSTGRES_DB: library
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U library -d library"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: |
+            package-lock.json
+            server/package-lock.json
+      - name: Lint
+        run: npm ci && npm run lint
+      - name: Tests
+        working-directory: server
+        env:
+          DATABASE_URL: postgres://library:library@localhost:5432/library
+          JWT_SECRET: integration-test-secret
+          MAIL_MODE: log
+          UPLOAD_DIR: /tmp/spp3-uploads
+        run: npm ci && npm test && npm run test:integration

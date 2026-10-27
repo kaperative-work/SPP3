@@ -1,0 +1,71 @@
+services:
+  db:
+    image: postgres:16-alpine
+    container_name: spp-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: library
+      POSTGRES_PASSWORD: library
+      POSTGRES_DB: library
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U library -d library"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  api:
+    build: ./server
+    container_name: spp-api
+    restart: unless-stopped
+    environment:
+      DATABASE_URL: postgres://library:library@db:5432/library
+      PORT: "3000"
+      UPLOAD_DIR: /app/uploads
+      JWT_SECRET: spp3-lab-secret-key
+      JWT_TTL_MINUTES: "30"
+      MAX_SESSIONS: "3"
+      LOGIN_MAX_FAILURES: "5"
+      LOGIN_WINDOW_MINUTES: "15"
+      LOGIN_LOCK_MINUTES: "15"
+      RESET_TTL_MINUTES: "30"
+      MAIL_MODE: log
+      MAIL_FROM: library@localhost
+      APP_PUBLIC_URL: http://localhost:8080
+      LOG_LEVEL: INFO
+    volumes:
+      - uploads:/app/uploads
+    ports:
+      - "3000:3000"
+    depends_on:
+      db:
+        condition: service_healthy
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "node",
+          "-e",
+          "fetch('http://127.0.0.1:3000/api/health').then((r)=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))",
+        ]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+      start_period: 10s
+
+  client:
+    build: ./client
+    container_name: spp-client
+    restart: unless-stopped
+    ports:
+      - "8080:80"
+    depends_on:
+      api:
+        condition: service_healthy
+
+volumes:
+  pgdata:
+  uploads:

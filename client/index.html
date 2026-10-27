@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Каталог библиотеки</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%238f3d2b'/%3E%3Cpath d='M9 7h10a4 4 0 0 1 4 4v14H13a4 4 0 0 0-4 4V7z' fill='%23f8efe6'/%3E%3C/svg%3E">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Literata:opsz,wght@7..72,600;7..72,700&family=Manrope:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+  <header class="topbar">
+    <div class="topbar-inner">
+      <div class="brand-block">
+        <a class="brand" id="brand" href="#/">Каталог библиотеки</a>
+        <p class="brand-note">Фонд, роли и временные ключи</p>
+      </div>
+      <div class="topbar-actions">
+        <div id="session-box" class="session-box" hidden>
+          <div class="session-id">
+            <span id="session-user"></span>
+            <span id="session-role" class="badge"></span>
+            <span id="session-expiry" class="session-expiry"></span>
+          </div>
+          <button class="button secondary" id="sessions-btn" type="button">Сеансы</button>
+          <a class="button secondary" id="users-link" href="#/users" hidden>Пользователи</a>
+          <button class="button secondary" id="logout-btn" type="button">Выйти</button>
+        </div>
+        <button class="button" id="add-btn" type="button" hidden>Добавить книгу</button>
+      </div>
+    </div>
+  </header>
+
+  <div id="banner" class="banner" hidden role="status"></div>
+
+  <main>
+    <section id="view-auth" hidden>
+      <p id="auth-policy" class="hint"></p>
+
+      <form id="login-form" class="panel" novalidate>
+        <h1>Вход</h1>
+        <p class="hint">Доступ к каталогу выдаётся временным ключом. Роль в ключе определяет, что можно делать с фондом.</p>
+        <label>
+          <span class="label">Электронная почта</span>
+          <input id="login-email" name="email" type="email" autocomplete="username" required maxlength="254">
+          <p class="field-error" data-error-for="email"></p>
+        </label>
+        <label>
+          <span class="label">Пароль</span>
+          <input id="login-password" name="password" type="password" autocomplete="current-password" required maxlength="200">
+          <p class="field-error" data-error-for="password"></p>
+        </label>
+        <div class="actions">
+          <button class="button" id="login-submit" type="submit">Войти</button>
+          <button class="button secondary" id="login-evict" type="button" hidden>Закрыть старый сеанс и войти</button>
+        </div>
+        <p class="auth-switch">
+          <a href="#/register">Создать учётную запись</a>
+          <a href="#/forgot">Забыли пароль?</a>
+        </p>
+        <p class="hint">Учебные входы: admin@library.local / Admin123! · librarian@library.local / Librarian123! · reader@library.local / Reader123!</p>
+      </form>
+
+      <form id="register-form" class="panel" hidden novalidate>
+        <h1>Регистрация</h1>
+        <p class="hint">Новая учётная запись получает роль «Читатель». Сменить роль может администратор.</p>
+        <label>
+          <span class="label">Имя</span>
+          <input id="register-name" name="name" type="text" autocomplete="name" required maxlength="100">
+          <p class="field-error" data-error-for="name"></p>
+        </label>
+        <label>
+          <span class="label">Электронная почта</span>
+          <input id="register-email" name="email" type="email" autocomplete="username" required maxlength="254">
+          <p class="field-error" data-error-for="email"></p>
+        </label>
+        <label>
+          <span class="label">Пароль</span>
+          <input id="register-password" name="password" type="password" autocomplete="new-password" required maxlength="200">
+          <p class="field-error" data-error-for="password"></p>
+          <p class="hint">Не короче 8 символов, с буквой и цифрой.</p>
+        </label>
+        <div class="actions">
+          <button class="button" id="register-submit" type="submit">Создать</button>
+        </div>
+        <p class="auth-switch"><a href="#/login">Уже есть учётная запись</a></p>
+      </form>
+
+      <form id="forgot-form" class="panel" hidden novalidate>
+        <h1>Восстановление доступа</h1>
+        <p class="hint">На почту уйдёт одноразовая ссылка. В учебной среде письмо записывается в журнал API и, если адрес найден, показывается ниже.</p>
+        <label>
+          <span class="label">Электронная почта</span>
+          <input id="forgot-email" name="email" type="email" autocomplete="username" required maxlength="254">
+          <p class="field-error" data-error-for="email"></p>
+        </label>
+        <div class="actions">
+          <button class="button" id="forgot-submit" type="submit">Отправить инструкции</button>
+        </div>
+        <p id="forgot-result" class="hint"></p>
+        <p id="mail-preview" class="mail-preview" hidden>
+          Учебная почта: <a id="mail-link" href=""></a>
+        </p>
+        <p class="auth-switch"><a href="#/login">К входу</a></p>
+      </form>
+
+      <form id="reset-form" class="panel" hidden novalidate>
+        <h1>Новый пароль</h1>
+        <label>
+          <span class="label">Ключ из письма</span>
+          <input id="reset-token" name="token" type="text" autocomplete="off" required>
+          <p class="field-error" data-error-for="token"></p>
+        </label>
+        <label>
+          <span class="label">Новый пароль</span>
+          <input id="reset-password" name="password" type="password" autocomplete="new-password" required maxlength="200">
+          <p class="field-error" data-error-for="password"></p>
+        </label>
+        <label>
+          <span class="label">Повтор пароля</span>
+          <input id="reset-password2" name="passwordConfirm" type="password" autocomplete="new-password" required maxlength="200">
+          <p class="field-error" data-error-for="passwordConfirm"></p>
+        </label>
+        <div class="actions">
+          <button class="button" id="reset-submit" type="submit">Сохранить пароль</button>
+        </div>
+        <p class="auth-switch"><a href="#/login">К входу</a></p>
+      </form>
+    </section>
+
+    <section id="view-users" hidden>
+      <div class="panel">
+        <h1>Пользователи</h1>
+        <p class="hint">Администратор назначает роли. Своя роль здесь не меняется, последний администратор остаётся в системе.</p>
+        <div id="user-list" class="user-list"></div>
+      </div>
+    </section>
+
+    <section id="view-list" hidden>
+      <form id="filters" class="filters" autocomplete="off">
+        <label>
+          <span class="label">Поиск</span>
+          <input id="search" type="search" placeholder="Название или автор" autocomplete="off">
+        </label>
+        <label>
+          <span class="label">Жанр</span>
+          <select id="genre-filter">
+            <option value="">Все жанры</option>
+          </select>
+        </label>
+      </form>
+      <p id="list-status" class="muted">Загрузка…</p>
+      <div id="book-list" class="cards"></div>
+    </section>
+
+    <section id="view-form" hidden>
+      <form id="book-form" class="panel" novalidate>
+        <h1 id="form-title">Новая книга</h1>
+        <p class="hint">Карточка сохраняется запросом JSON. Файл обложки уходит отдельно как multipart/form-data. Страница при этом не перезагружается.</p>
+
+        <label>
+          <span class="label">Название</span>
+          <input id="field-title" name="title" type="text" maxlength="200" required aria-describedby="error-title">
+          <p id="error-title" class="field-error" data-error-for="title"></p>
+        </label>
+
+        <label>
+          <span class="label">Автор</span>
+          <input id="field-author" name="author" type="text" maxlength="200" required aria-describedby="error-author">
+          <p id="error-author" class="field-error" data-error-for="author"></p>
+        </label>
+
+        <div class="form-row">
+          <label>
+            <span class="label">Год издания</span>
+            <input id="field-year" name="year" type="number" step="1" required aria-describedby="error-year">
+            <p id="error-year" class="field-error" data-error-for="year"></p>
+          </label>
+          <label>
+            <span class="label">Жанр</span>
+            <select id="field-genre" name="genre" required aria-describedby="error-genre">
+              <option value="">Выберите жанр</option>
+            </select>
+            <p id="error-genre" class="field-error" data-error-for="genre"></p>
+          </label>
+        </div>
+
+        <label>
+          <span class="label">Описание</span>
+          <textarea id="field-description" name="description" maxlength="4000" aria-describedby="error-description"></textarea>
+          <p id="error-description" class="field-error" data-error-for="description"></p>
+        </label>
+
+        <label>
+          <span class="label">Обложка</span>
+          <input id="field-cover" name="cover" type="file" accept="image/jpeg,image/png,image/webp,image/gif" aria-describedby="error-cover">
+          <p class="hint">JPEG, PNG, WEBP или GIF, до 5 МБ.</p>
+          <p id="error-cover" class="field-error" data-error-for="cover"></p>
+        </label>
+
+        <img id="cover-preview" class="cover-preview" alt="Предпросмотр обложки" hidden>
+
+        <label class="check" id="remove-cover-wrap" hidden>
+          <input id="field-remove-cover" type="checkbox">
+          Удалить текущую обложку
+        </label>
+
+        <div class="actions">
+          <button class="button secondary" id="form-cancel" type="button">Отмена</button>
+          <button class="button" id="form-submit" type="submit">Добавить</button>
+        </div>
+      </form>
+    </section>
+
+    <section id="view-detail" hidden>
+      <article id="detail"></article>
+    </section>
+
+    <section id="view-missing" hidden>
+      <div class="empty-state panel">
+        <h1 id="missing-title">Страница не найдена</h1>
+        <p id="missing-text"></p>
+        <div class="actions">
+          <button class="button" id="retry" type="button" hidden>Повторить</button>
+          <a class="button secondary" href="#/">К каталогу</a>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="footer">Лабораторная работа №3 · роли, временные ключи и REST API</footer>
+
+  <dialog id="sessions-dialog">
+    <h2>Активные сеансы</h2>
+    <p class="hint">У одного пользователя не больше заданного числа одновременных сеансов. У каждого сеанса свой ключ со сроком действия.</p>
+    <div id="sessions-list"></div>
+    <div class="dialog-actions">
+      <button class="button secondary" id="sessions-close" type="button">Закрыть</button>
+    </div>
+  </dialog>
+
+  <dialog id="confirm-dialog">
+    <form method="dialog">
+      <h2>Удаление</h2>
+      <p id="confirm-text"></p>
+      <div class="dialog-actions">
+        <button class="button secondary" value="cancel">Отмена</button>
+        <button class="button danger" value="confirm">Удалить</button>
+      </div>
+    </form>
+  </dialog>
+
+  <noscript>
+    <p class="banner error">Для работы каталога нужен JavaScript.</p>
+  </noscript>
+  <script type="module" src="/js/app.js"></script>
+</body>
+</html>
