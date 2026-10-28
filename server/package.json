@@ -5,8 +5,8 @@
   "type": "module",
   "scripts": {
     "start": "node src/index.js",
-    "test": "node --test test/unit",
-    "test:integration": "node --test test/integration"
+    "test": "node --test test/unit/core.test.js",
+    "test:integration": "node --test test/integration/api.test.js"
   },
   "dependencies": {
     "express": "^4.21.2",
